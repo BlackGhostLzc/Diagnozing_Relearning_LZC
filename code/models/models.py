@@ -2,20 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from .backbone import resnet18
-
-
-class ConcatFusion(nn.Module):
-    def __init__(self, input_dim=1024+512, output_dim=100):
-        super(ConcatFusion, self).__init__()
-        self.fc_out = nn.Linear(input_dim, output_dim)
-
-    def forward(self, out):
-        # output = torch.cat((x, y), dim=1)
-        output = self.fc_out(out)
-        return output
-
 
 
 class RGBClassifier(nn.Module):
@@ -70,10 +57,10 @@ class AVClassifier(nn.Module):
         self.visual_net = resnet18(modality='visual')
 
         self.head = nn.Linear(1024, n_classes)
-        self.head_audio = nn.Linear(512, n_classes)
-        self.head_video = nn.Linear(512, n_classes)
-
-
+        self.audio_fc = nn.Linear(512, 1024)
+        self.video_fc = nn.Linear(512, 1024)
+        self.d_a = 512
+        self.d_v = 512
 
 
 
@@ -98,8 +85,10 @@ class AVClassifier(nn.Module):
 
         # Added
         '''
-        这里的a,v都是512的维度
+        这里的a,v都是512的维度,我们要对这个维度进行更改
         '''
+        a = self.audio_fc(a)[:, :self.d_a]
+        v = self.video_fc(v)[:, :self.d_v]                   #[64, 1024]
 
         out = torch.cat((a,v),1)                 #[64, 1024]
         out = self.head(out)
@@ -107,7 +96,16 @@ class AVClassifier(nn.Module):
         return out,_,_,a,v
 
 
-        
+    def update_dimension_av(self, purity_a, purity_b):
+        self.d_a = int(purity_a/(purity_b + purity_a) * 1024)
+        self.d_v = 1024 - self.d_a
+
+        print(f"更新audio的输出维度为: {self.d_a}")
+        print(f"更新visual的输出维度为: {self.d_v}")
+
+        assert self.d_a + self.d_v == 1024
+        assert self.d_a > 0
+        assert self.d_v > 0
     
 
 

@@ -477,14 +477,14 @@ def main():
                 print("Loss: {:.4f}, Acc: {:.4f}".format(
                     batch_loss, test_acc))
 
-                # 生成 t-SNE 图
-                print("best acc: 生成t-SNE图")
-                train_audio, train_visual, train_label = get_feature(args, epoch, model, device, train_dataloader)
-                val_audio, val_visual, val_label = get_feature(args, epoch, model, device, val_dataloader)
-                # Added
-                # 生成t-sne算法数据降维图
-                draw_tsne(val_visual, val_label, 6, modality="visual")
-                draw_tsne(val_audio, val_label, 6, modality="audio")
+                # # 生成 t-SNE 图
+                # print("best acc: 生成t-SNE图")
+                # train_audio, train_visual, train_label = get_feature(args, epoch, model, device, train_dataloader)
+                # val_audio, val_visual, val_label = get_feature(args, epoch, model, device, val_dataloader)
+                # # Added
+                # # 生成t-sne算法数据降维图
+                # draw_tsne(val_visual, val_label, 6, modality="visual")
+                # draw_tsne(val_audio, val_label, 6, modality="audio")
             else:
                 print("Loss: {:.4f}, Acc: {:.4f},Best Acc: {:.4f}".format(
                     batch_loss, test_acc,best_acc))
@@ -502,6 +502,7 @@ def main():
                     weight_audio,weight_visual,audio_val_purity,visual_val_purity \
                         = reinit_score(args, train_audio,train_visual,train_label,val_audio,val_visual,val_label)
                     model=reinit(args, model,checkpoint,weight_audio,weight_visual)
+                    model.update_dimension_av(audio_val_purity, visual_val_purity)
 
 
 
