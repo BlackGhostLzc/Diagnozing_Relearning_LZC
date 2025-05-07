@@ -378,7 +378,6 @@ def draw_tsne(features, labels, num_classes, modality):
 
 
 def main():
-
     args = get_arguments()
     print(args)
 

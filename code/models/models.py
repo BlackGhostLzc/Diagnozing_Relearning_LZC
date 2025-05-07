@@ -69,6 +69,7 @@ class AVClassifier(nn.Module):
             visual = visual.permute(0, 2, 1, 3, 4).contiguous()
 
         # visual: [batchSize, pickNum=2, channel=3, w=224, h=224]
+        # 这里的 picknum 不会影响最后输出的维度
         a = self.audio_net(audio)
         v = self.visual_net(visual)
 

@@ -99,7 +99,7 @@ class AVEDataset(Dataset):
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ])
 
-        pick_num = 2
+        pick_num = 3
         # seg = int(file_num / pick_num)
         # path1 = []
         image = []

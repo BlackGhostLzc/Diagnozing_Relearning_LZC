@@ -23,8 +23,8 @@ class AVDataset_CD(Dataset):
 
     self.mode=mode
     ## replace with your visual_path and audio_path
-    self.visual_path = '../../crema-d/visual/'
-    self.audio_path = '../../crema-d/audio/'
+    self.visual_path = '/root/autodl-tmp/CREMA-D/Image-01/'
+    self.audio_path = '/root/autodl-tmp/CREMA-D/audio_npy_files/'
 
     
     self.stat_path = './dataset/cremad/stat.csv'
@@ -50,7 +50,8 @@ class AVDataset_CD(Dataset):
     with open(csv_file) as f:
       csv_reader = csv.reader(f)
       for item in csv_reader:
-        if item[1] in classes and os.path.exists(self.audio_path + item[0] + '.pt') and os.path.exists(
+        # print(self.audio_path + item[0] + '.npy')
+        if item[1] in classes and os.path.exists(self.audio_path + item[0] + '.npy') and os.path.exists(
                         self.visual_path + '/' + item[0]):
             self.data.append(item[0])
             data2class[item[0]] = item[1]
@@ -79,7 +80,9 @@ class AVDataset_CD(Dataset):
     datum = self.data[idx]
 
     # Audio
-    fbank = torch.load(self.audio_path + datum + '.pt').unsqueeze(0)
+    fbank = np.load(self.audio_path + datum + '.npy')
+    fbank = torch.from_numpy(fbank).unsqueeze(0)
+    #fbank = torch.load(self.audio_path + datum + '.npy').unsqueeze(0)
 
     # Visual
     if self.mode == 'train':
@@ -96,22 +99,45 @@ class AVDataset_CD(Dataset):
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
 
+    # folder_path = self.visual_path + datum
+    # # file_num = len(os.listdir(folder_path))
+    # pick_num = 1
+    # # seg = int(file_num/pick_num)
+    # image_arr = []
+
+    # jpg_files = [f for f in os.listdir(folder_path) if f.lower().endswith('.jpg')]
+    # selected = random.sample(jpg_files, pick_num)
+    # for i, file in enumerate(selected):
+    #     filepath = os.path.join(folder_path, file)
+    #     image_arr.append(transf(Image.open(filepath).convert('RGB')).unsqueeze(0))
+    #
+    # # for i in range(pick_num):
+    # #   if self.mode == 'train':
+    # #     index = i * 29
+    # #   else:
+    # #     index = 0
+    # #   path = folder_path + '/000' + str(index).zfill(2) + '.jpg'
+    # #   # print(path)
+    # #   image_arr.append(transf(Image.open(path).convert('RGB')).unsqueeze(0))
+
+    # [2, 3, 224, 224]
+    # images = torch.cat(image_arr)
+
     folder_path = self.visual_path + datum
     file_num = len(os.listdir(folder_path))
-    pick_num = 3
-    seg = int(file_num/pick_num)
+    pick_num = 2
+    seg = int(file_num / pick_num)
     image_arr = []
 
     for i in range(pick_num):
-      if self.mode == 'train':
-        index = i * 29
-      else:
-        index = 0
-      path = folder_path + '/000' + str(index).zfill(2) + '.jpg'
-      # print(path)
-      image_arr.append(transf(Image.open(path).convert('RGB')).unsqueeze(0))
+        if self.mode == 'train':
+            index = random.randint(i * seg + 1, i * seg + seg)
+        else:
+            index = i * seg + int(seg / 2)
+        path = folder_path + '/000' + str(index).zfill(2) + '.jpg'
+        # print(path)
+        image_arr.append(transf(Image.open(path).convert('RGB')).unsqueeze(0))
 
-    # [2, 3, 224, 224]
     images = torch.cat(image_arr)
 
     return fbank, images, self.classes.index(self.data2class[datum])
