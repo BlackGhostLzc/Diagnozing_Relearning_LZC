@@ -1,6 +1,7 @@
 from utils.utils import setup_seed
-from dataset.av_dataset import AVDataset_CD
-import copy
+from dataset.cremad.av_dataset import AVDataset_CD
+from dataset.AVE.ave_dataset import AVEDataset
+
 from torch.utils.data import DataLoader
 from models.models import AVClassifier
 from sklearn import metrics
@@ -8,18 +9,13 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
-import numpy as np
 from numpy import *
 from tqdm import tqdm
 from sklearn.metrics import f1_score
 import argparse
-import os
-import pickle
-from sklearn.manifold import TSNE
 from sklearn import preprocessing
 from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score
-from operator import mod
 import warnings
 warnings.filterwarnings('ignore')
 import wandb
@@ -242,6 +238,8 @@ def valid(args, model, device, dataloader):
         n_classes = 527
     elif args.dataset == 'UCF101':
         n_classes = 101
+    elif args.dataset == 'AVE':
+        n_classes = 28
 
     cri = nn.CrossEntropyLoss()
     _loss = 0
@@ -292,6 +290,8 @@ def valid(args, model, device, dataloader):
                     ss = torch.zeros(31)
                 elif args.dataset == 'CREMAD':
                     ss = torch.zeros(6)
+                elif args.dataset == 'AVE':
+                    ss = torch.zeros(28)
                 ss[label[i]] = 1
                 all_label.append(ss.numpy())
 
@@ -417,6 +417,10 @@ def main():
         train_dataset = AVDataset_CD(mode='my_train')
         test_dataset = AVDataset_CD(mode='test')
         val_dataset=AVDataset_CD(mode='val')
+    elif args.dataset == 'AVE':
+        train_dataset = AVEDataset(mode='train')
+        test_dataset = AVEDataset(mode='test')
+        val_dataset = AVEDataset(mode='val')
 
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size,
                                   shuffle=True, num_workers=16, pin_memory=False)

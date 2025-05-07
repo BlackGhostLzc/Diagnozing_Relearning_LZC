@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="root@connect.nmb2.seetacloud.com:48712 password (7)" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="root@connect.nmb2.seetacloud.com:33530 password (2)" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
       <paths name="root@connect.bjb1.seetacloud.com:13371 password">
         <serverdata>
@@ -44,6 +44,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="root@connect.nmb2.seetacloud.com:23356 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/project" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="root@connect.nmb2.seetacloud.com:27981 password">
         <serverdata>
           <mappings>
@@ -52,6 +59,20 @@
         </serverdata>
       </paths>
       <paths name="root@connect.nmb2.seetacloud.com:30230 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/project" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.nmb2.seetacloud.com:33530 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/project" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.nmb2.seetacloud.com:33530 password (2)">
         <serverdata>
           <mappings>
             <mapping deploy="/root/project" local="$PROJECT_DIR$" />

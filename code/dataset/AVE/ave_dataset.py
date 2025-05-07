@@ -1,17 +1,17 @@
 import copy
 import csv
 import os
-import pickle
+# import pickle
 
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
 import random
-
+import numpy as np
 class AVEDataset(Dataset):
 
-    def __init__(self, args, mode='train'):
+    def __init__(self, mode='train'):
         classes = []
         data = []
         data2class = {}
@@ -27,9 +27,13 @@ class AVEDataset(Dataset):
         self.test_txt = os.path.join(self.data_root, 'testSet.txt')
 
         with open(self.stat_path) as f1:
-            csv_reader = csv.reader(f1)
-            for row in csv_reader:
-                classes.append(row[0])
+            for line in f1:
+                line = line.split('&')
+                c = line[0]
+                if c == 'Category':
+                    continue
+                if c not in classes:
+                    classes.append(c)
 
         if mode == 'train':
             csv_file = self.train_txt
@@ -37,19 +41,19 @@ class AVEDataset(Dataset):
             csv_file = self.test_txt
 
         with open(csv_file) as f2:
-            csv_reader = csv.reader(f2)
-            for item in csv_reader:
-                audio_path = os.path.join(self.audio_feature_path, item[1] + '.npy')
-                visual_path = os.path.join(self.visual_feature_path, item[1])
+            for line in f2:
+                line = line.split('&')
+                #print(os.path.join(self.audio_feature_path, item[1] + '.npy'))
+                audio_path = os.path.join(self.audio_feature_path, line[1] + '.npy')
+                visual_path = os.path.join(self.visual_feature_path, line[1])
                 if os.path.exists(audio_path) and os.path.exists(visual_path):
-                    if args.dataset == 'AVE':
-                        # AVE, delete repeated labels
-                        a = set(data)
-                        if item[1] in a:
-                            del data2class[item[1]]
-                            data.remove(item[1])
-                    data.append(item[1])
-                    data2class[item[1]] = item[0]
+                    # AVE, delete repeated labels
+                    a = set(data)
+                    if line[1] in a:
+                        del data2class[line[1]]
+                        data.remove(line[1])
+                    data.append(line[1])
+                    data2class[line[1]] = line[0]
                 else:
                     continue
 
@@ -69,11 +73,13 @@ class AVEDataset(Dataset):
 
     def __getitem__(self, idx):
         av_file = self.av_files[idx]
-
+        # print(av_file)
+        # print(os.path.join(self.audio_feature_path, av_file + '.npy'))
         # Audio
         audio_path = os.path.join(self.audio_feature_path, av_file + '.npy')
-        spectrogram = pickle.load(open(audio_path, 'rb'))
-
+        #spectrogram = pickle.load(open(audio_path, 'rb'))
+        spectrogram = np.load(audio_path)
+        spectrogram = torch.from_numpy(spectrogram).unsqueeze(0)
         # Visual
         visual_path = os.path.join(self.visual_feature_path, av_file)
         file_num = len(os.listdir(visual_path))
@@ -113,7 +119,7 @@ class AVEDataset(Dataset):
 
         jpg_files = [f for f in os.listdir(visual_path) if f.lower().endswith('.jpg')]
         selected = random.sample(jpg_files, pick_num)
-        for i, file in range(selected):
+        for i, file in enumerate(selected):
             filepath = os.path.join(visual_path, file)
             image.append(Image.open(filepath).convert('RGB'))
             image_arr.append(transform(image[i]))
@@ -122,5 +128,11 @@ class AVEDataset(Dataset):
                 image_n = copy.copy(image_arr[i])
             else:
                 image_n = torch.cat((image_n, image_arr[i]), 1)
-
-        return spectrogram, image_n, self.classes.index(self.data2class[av_file]), av_file
+        # print("spectrogram")
+        # print(type(spectrogram))
+        # print("image_n")
+        # print(type(image_n))
+        # print("index")
+        # print(self.classes.index(self.data2class[av_file]))
+        # return spectrogram, image_n, self.classes.index(self.data2class[av_file]), av_file
+        return spectrogram, image_n, self.classes.index(self.data2class[av_file])

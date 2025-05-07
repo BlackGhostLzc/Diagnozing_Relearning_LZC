@@ -98,7 +98,7 @@ class AVDataset_CD(Dataset):
 
     folder_path = self.visual_path + datum
     file_num = len(os.listdir(folder_path))
-    pick_num = 2
+    pick_num = 3
     seg = int(file_num/pick_num)
     image_arr = []
 

@@ -1,6 +1,5 @@
 from utils.utils import setup_seed
-from dataset.av_dataset import AVDataset_CD
-import copy
+from code.dataset.cremad.av_dataset import AVDataset_CD
 from torch.utils.data import DataLoader
 from models.models import AVClassifier
 from sklearn import metrics
@@ -13,9 +12,6 @@ from tqdm import tqdm
 import argparse
 import os
 from sklearn.metrics import f1_score
-import pickle
-from operator import mod
-
 
 
 def get_arguments():
