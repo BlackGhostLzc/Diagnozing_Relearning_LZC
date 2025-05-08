@@ -195,7 +195,9 @@ def train_epoch(args, epoch, model, device, dataloader, optimizer):
 
 
     for step, (spec, images, label) in tqdm(enumerate(dataloader)):
-
+        # print(type(spec))
+        # print(type(images))
+        # print(type(label))
 
         optimizer.zero_grad()
         images = images.to(device)

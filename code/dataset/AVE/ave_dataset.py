@@ -1,7 +1,7 @@
 import copy
 import csv
 import os
-# import pickle
+import pickle
 
 import torch
 from PIL import Image
@@ -20,7 +20,7 @@ class AVEDataset(Dataset):
         self.data_root = '/root/autodl-tmp/AVE_Dataset'
         self.audio_feature_path = '/root/autodl-tmp/AVE_Dataset/audio_npy_files'
 
-        self.visual_feature_path = os.path.join(self.data_root, 'Image-01-FPS')
+        self.visual_feature_path = os.path.join(self.data_root, 'Image-01')
 
         self.stat_path = os.path.join(self.data_root, 'Annotations.txt')
         self.train_txt = os.path.join(self.data_root, 'trainSet.txt')
@@ -78,14 +78,13 @@ class AVEDataset(Dataset):
         # Audio
         audio_path = os.path.join(self.audio_feature_path, av_file + '.npy')
         #spectrogram = pickle.load(open(audio_path, 'rb'))
-        spectrogram = np.load(audio_path)
+        spectrogram = np.load(audio_path, allow_pickle=True)
         spectrogram = torch.from_numpy(spectrogram).unsqueeze(0)
         # Visual
         visual_path = os.path.join(self.visual_feature_path, av_file)
         file_num = len(os.listdir(visual_path))
 
         if self.mode == 'train':
-
             transform = transforms.Compose([
                 transforms.RandomResizedCrop(224),
                 transforms.RandomHorizontalFlip(),
@@ -117,22 +116,31 @@ class AVEDataset(Dataset):
         #     else:
         #         image_n = torch.cat((image_n, image_arr[i]), 1)
 
-        jpg_files = [f for f in os.listdir(visual_path) if f.lower().endswith('.jpg')]
-        selected = random.sample(jpg_files, pick_num)
-        for i, file in enumerate(selected):
-            filepath = os.path.join(visual_path, file)
-            image.append(Image.open(filepath).convert('RGB'))
-            image_arr.append(transform(image[i]))
-            image_arr[i] = image_arr[i].unsqueeze(1).float()
-            if i == 0:
-                image_n = copy.copy(image_arr[i])
+        # jpg_files = [f for f in os.listdir(visual_path) if f.lower().endswith('.jpg')]
+        # selected = random.sample(jpg_files, pick_num)
+        # for i, file in enumerate(selected):
+        #     filepath = os.path.join(visual_path, file)
+        #     image.append(Image.open(filepath).convert('RGB'))
+        #     image_arr.append(transform(image[i]))
+        #     image_arr[i] = image_arr[i].unsqueeze(1).float()
+        #     if i == 0:
+        #         image_n = copy.copy(image_arr[i])
+        #     else:
+        #         image_n = torch.cat((image_n, image_arr[i]), 1)
+
+        file_num = len(os.listdir(visual_path))
+        pick_num = 3
+        seg = int(file_num / pick_num)
+        image_arr = []
+
+        for i in range(pick_num):
+            if self.mode == 'train':
+                index = random.randint(i * seg + 1, i * seg + seg)
             else:
-                image_n = torch.cat((image_n, image_arr[i]), 1)
-        # print("spectrogram")
-        # print(type(spectrogram))
-        # print("image_n")
-        # print(type(image_n))
-        # print("index")
-        # print(self.classes.index(self.data2class[av_file]))
-        # return spectrogram, image_n, self.classes.index(self.data2class[av_file]), av_file
-        return spectrogram, image_n, self.classes.index(self.data2class[av_file])
+                index = i * seg + int(seg / 2)
+            path = visual_path + '/000' + str(index).zfill(2) + '.jpg'
+            # print(path)
+            image_arr.append(transform(Image.open(path).convert('RGB')).unsqueeze(0))
+
+        images = torch.cat(image_arr)
+        return spectrogram, images, self.classes.index(self.data2class[av_file])

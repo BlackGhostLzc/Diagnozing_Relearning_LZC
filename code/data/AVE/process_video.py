@@ -122,6 +122,28 @@ class videoReader(object):
                         cv2.imencode('.jpg', image)[1].tofile(save_name)
                         count += 1
 
+    def video2frame_per_second(self, frame_save_path):
+        self.frame_save_path = frame_save_path
+        if not os.path.exists(frame_save_path):
+            os.makedirs(frame_save_path)
+
+        count = 0  # 视频中的帧计数
+        image_id = 0  # 保存的图片编号
+
+        while count < self.video_frames:
+            ret, image = self.vid.read()
+            if not ret:
+                break
+
+            # 如果当前帧是1秒整的倍数（第0秒、第1秒、第2秒...）
+            if count % self.fps == 0:
+                save_name = '{0}/{1:05d}.jpg'.format(self.frame_save_path, image_id)
+                # save_name = os.path.join(frame_save_path, '{:05d}.jpg'.format(image_id))
+                cv2.imencode('.jpg', image)[1].tofile(save_name)
+                image_id += 1
+
+            count += 1
+
 class AVE_dataset(object):
     def __init__(self, path_to_dataset='/root/autodl-tmp/AVE_Dataset', frame_interval=1, frame_kept_per_second=1):
         self.path_to_video = os.path.join(path_to_dataset, 'AVE')
@@ -129,7 +151,7 @@ class AVE_dataset(object):
         self.frame_kept_per_second = frame_kept_per_second
         self.sr = 16000
 
-        self.path_to_save = os.path.join(path_to_dataset, 'Image-{:02d}-FPS'.format(self.frame_kept_per_second))
+        self.path_to_save = os.path.join(path_to_dataset, 'Image-{:02d}'.format(self.frame_kept_per_second))
         if not os.path.exists(self.path_to_save):
             os.mkdir(self.path_to_save)
 
@@ -153,7 +175,7 @@ class AVE_dataset(object):
             save_dir = os.path.join(self.path_to_save, each_video[1])
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
-            self.videoReader.video2frame_update(frame_save_path=save_dir, min_save_frame=10)  # 每个视频最少取10张图片
+            self.videoReader.video2frame_per_second(frame_save_path=save_dir)  # 每个视频最少取10张图片
 
     def extractImage_SE(self):
 
@@ -172,61 +194,6 @@ class AVE_dataset(object):
                 os.mkdir(save_dir)
             self.videoReader.video2frame_update_SE(frame_save_path=save_dir, min_save_frame=10,
                                                    start_t=start_t, end_t=end_t)  # 每个视频最少取10张图片
-
-
-    # def extractWav(self):
-    #     for each_audio in self.file_list[1:]:
-    #         print('Precessing {} ...'.format(each_audio))
-    #         each_audio = each_audio.split('&')
-    #         audio_dir = os.path.join(self.path_to_audio, each_audio[1] + '.wav')
-    #
-    #         samples, rate = librosa.load(audio_dir, sr=self.sr)
-    #         resamples = np.tile(samples, 10)[:self.sr * 10]
-    #         resamples[resamples > 1.] = 1.
-    #         resamples[resamples < -1.] = -1.
-    #
-    #         # spectrogram = librosa.stft(resamples, n_fft=512, hop_length=353)
-    #         frequencies, times, spectrogram = signal.spectrogram(resamples, rate, nperseg=512, noverlap=353)
-    #         spectrogram = np.log(np.abs(spectrogram) + 1e-7)
-    #         mean = np.mean(spectrogram)
-    #         std = np.std(spectrogram)
-    #         spectrogram = np.divide(spectrogram - mean, std + 1e-9)
-    #         print(spectrogram.shape)
-    #         save_name = os.path.join(self.path_to_save_audio, each_audio[1] + '.pkl')
-    #         with open(save_name, 'wb') as fid:
-    #             pickle.dump(spectrogram, fid)
-    #
-    # def extractWav_SE(self):
-    #     for each_audio in self.file_list[1:]:
-    #         print('Precessing {} ...'.format(each_audio))
-    #         each_audio = each_audio.split('&')
-    #         start_t = int(each_audio[3])
-    #         end_t = int(each_audio[4])
-    #
-    #         audio_dir = os.path.join(self.path_to_audio, each_audio[1] + '.wav')
-    #
-    #         shape = self.sr * 10
-    #         samples, rate = librosa.load(audio_dir, sr=self.sr)
-    #         samples = samples[self.sr*start_t:self.sr*end_t]
-    #         resamples = np.tile(samples, 10)
-    #         if resamples.shape[0] < shape:
-    #             resamples = np.tile(resamples, 10)[:shape]
-    #         else:
-    #             resamples = resamples[:shape]
-    #         print('shape', resamples.shape)
-    #         resamples[resamples > 1.] = 1.
-    #         resamples[resamples < -1.] = -1.
-    #
-    #         # spectrogram = librosa.stft(resamples, n_fft=512, hop_length=353)
-    #         frequencies, times, spectrogram = signal.spectrogram(resamples, rate, nperseg=512, noverlap=353)
-    #         spectrogram = np.log(np.abs(spectrogram) + 1e-7)
-    #         mean = np.mean(spectrogram)
-    #         std = np.std(spectrogram)
-    #         spectrogram = np.divide(spectrogram - mean, std + 1e-9)
-    #         print(spectrogram.shape)
-    #         save_name = os.path.join(self.path_to_save_audio, each_audio[1] + '.pkl')
-    #         with open(save_name, 'wb') as fid:
-    #             pickle.dump(spectrogram, fid)
 
 
 ave = AVE_dataset()
